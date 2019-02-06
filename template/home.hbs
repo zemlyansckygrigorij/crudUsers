@@ -1,0 +1,178 @@
+
+<div id = "main" >  
+	<div id = "header" >  
+		<h1>Главная страница</h1>
+		<h2>Список пользователей</h2>
+	</div>
+	
+	<div id = "form" >  
+		<form name="userForm">
+			<input type="hidden" name="id" value="0" />
+			<div class="form-group">
+				<label for="name">Имя:</label>
+				<input class="form-control" name="name" />
+			</div>
+			
+			<div class="form-group">
+				<label for="age">Возраст:</label>
+				<input class="form-control" name="age" />
+			</div>
+			
+			<div class="panel-body">
+				<button type="submit" id="save" class="btn btn-sm btn-primary">Сохранить</button>
+				<button id="reset" class="btn btn-sm btn-primary">Сбросить</button>
+			   <!--<a id="reset" class="btn btn-sm btn-primary">Сбросить</a>-->
+			</div>
+		</form>
+	</div>
+	
+	<div id = "table" >  
+		<table id = "tableUsers" class="table table-condensed table-striped table-bordered">
+			<thead><tr><th>Id</th><th>Имя</th><th>возраст</th><th></th></tr></thead>
+			<tbody id = "contentUsers">
+			 </tbody>
+		</table>
+	</div>	
+</div>	
+
+<style>
+
+#main{
+	margin: 10px;
+}
+
+
+</style>
+
+
+<script>
+	let contentUsers = document.getElementById('contentUsers'); 
+	let xhr = new XMLHttpRequest();  
+	  
+	let buttonSave = document.getElementById('save'); 
+	let buttonReset = document.getElementById('reset'); 
+
+	buttonSave.addEventListener( "click" , save);
+	buttonReset.addEventListener( "click" , reset);
+	let form =document.forms.userForm;
+	let url = 'http://localhost:3000/users';
+
+	function save(){
+
+	    if(form.elements["name"].value == ''||form.elements["age"].value == ''){
+			return;
+		}
+
+		if(isNaN(form.elements["age"].value)){
+			return;
+		}
+
+		if(!(form.elements["age"].value >0)){
+			return;
+		}
+		
+		if(form.elements["id"].value>0){
+			EditUser() ;
+		}else{
+			PostUser();
+		}
+		reset();
+	}
+	
+	function deleteUser(ev){
+		ev.preventDefault();
+		ev = window.event.currentTarget;
+		id = ev.getAttribute("idUser");
+		DeleteUser(id);
+		reset();
+	}
+	
+	function reset(){
+		form.elements["id"].value = null;
+		form.elements["name"].value = '';
+		form.elements["age"].value = '';
+		window.location.reload();
+	}
+	
+	function GetUsers(){
+		query('GET', 'http://localhost:3000/api/users/');
+	}
+	
+	function createTable(){
+		if (xhr.status != 200) {
+			// обработать ошибку
+			alert('Ошибка ' + xhr.status + ': ' + xhr.statusText);
+		} else {
+			arrUsers = JSON.parse(xhr.response);
+			arrUsers.forEach(function(user, i, arr){
+
+				let tr = document.createElement('tr');
+				tr.appendChild( document.createElement('td') );
+				tr.appendChild( document.createElement('td') );
+				tr.appendChild( document.createElement('td') );
+				tr.appendChild( document.createElement('td') );
+				//tr.appendChild( document.createElement('td') );
+				tr.cells[0].appendChild( document.createTextNode(user.id));
+				tr.cells[1].appendChild( document.createTextNode(user.name)); 
+				tr.cells[2].appendChild( document.createTextNode(user.age)); 
+				
+				let btn = document.createElement("BUTTON"); 
+				btn.appendChild(document.createTextNode("удалить"));
+				btn.setAttribute("idUser", user.id);
+				btn.addEventListener("click" , deleteUser);
+				btn.classList.add("buttonDelete");
+				tr.cells[3].appendChild( btn);
+				
+				tr.addEventListener( "click" , getRow);
+				contentUsers.appendChild(tr);
+			}); 
+		}
+	}
+
+	function PostUser(){
+
+		let user = {
+			id: contentUsers.rows.length +1,
+			name: form.elements["name"].value,
+			age: form.elements["age"].value
+		}
+		query('POST', 'http://localhost:3000/api/users/',user);
+	}
+
+	function EditUser() {
+		let user = {
+			id: form.elements["id"].value,
+			name: form.elements["name"].value,
+			age: form.elements["age"].value
+		}
+		query('PUT', 'http://localhost:3000/api/users/',user);	
+	}
+	
+	function DeleteUser(id) {
+		query('DELETE', 'http://localhost:3000/api/users/'+id);		
+	}
+
+	// get data from table by onclick
+	function getRow(ev){
+		ev = window.event.currentTarget;
+		let row = document.getElementById("tableUsers").rows[ev.rowIndex];
+		form.elements["id"].value = row.cells[0].innerHTML;
+		form.elements["name"].value = row.cells[1].innerHTML;
+		form.elements["age"].value = row.cells[2].innerHTML;
+	}
+
+	function query(method, url,body){
+		xhr.open(method,  url, false);
+		xhr.setRequestHeader('Content-Type', 'application/json');
+		if(body){
+			xhr.send( JSON.stringify(body));
+		}else{
+			xhr.send();
+		}		
+	}
+
+	GetUsers();
+	createTable();  
+</script>
+
+	

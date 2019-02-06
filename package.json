@@ -1,0 +1,17 @@
+{
+	"scripts": {
+		"start": "nodemon app.js",
+		"test": "mocha *.test.js"
+	},
+	"dependencies": {
+		"body-parser": "^1.18.3",
+		"chai-http": "^4.2.1",
+		"express": "^4.16.4",
+		"express-handlebars": "^3.0.0",
+		"hbs": "^4.0.1"
+	},
+	"devDependencies": {
+		"mocha": "^5.2.0",
+		"supertest": "^3.4.2"
+	}
+}
